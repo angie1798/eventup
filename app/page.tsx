@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { useRef, useState } from "react";
 import * as XLSX from "xlsx";
+import {X, Check} from "lucide-react";
 
 export interface PersonaExcel {
   id: number;
@@ -84,22 +85,41 @@ export default function Home() {
   return (
     <div className="container  mx-auto mt-20">
       <Table>
-  <TableCaption>Tu lista de invitados.</TableCaption>
+        {data.length > 0 ?
+  <TableCaption>Esta es tu lista de invitados.</TableCaption>
+  : <TableCaption>Actualmente no tienes invitados.</TableCaption>
+  }
   <TableHeader>
     <TableRow>
-      <TableHead className="w-[100px]">Número</TableHead>
+      <TableHead className="w-[100px]">ID</TableHead>
       <TableHead>Nombre</TableHead>
+      <TableHead>Tipo de invitado</TableHead>
+      <TableHead>Familia</TableHead>
+      <TableHead>Contacto</TableHead>
+      <TableHead>Estado</TableHead>
+      <TableHead>Acciones</TableHead>
     </TableRow>
   </TableHeader>
   <TableBody>
-    {data.length > 0 ?
+    {data.length > 0 &&
     data.map((persona) => (
       <TableRow key={persona.id}>
         <TableCell className="font-medium">INV{persona.id.toString().padStart(3, '0')}</TableCell>
-        <TableCell>{persona.nombre} {persona.apellido}</TableCell>
+        <TableCell>{persona.nombre}</TableCell>
+        <TableCell>{persona.tipoInvitado}</TableCell>
+        <TableCell>{persona.familia}</TableCell>
+        <TableCell>{persona.contacto}</TableCell>
+        <TableCell>{persona.estado}</TableCell>
+        <TableCell>
+          <Button size="sm" className="mr-2">
+            <Check className="mr-2 h-4 w-4" />Confirmar
+          </Button>
+          <Button size="sm">
+            <X className="mr-2 h-4 w-4" />No asistirá
+          </Button>
+        </TableCell>
       </TableRow>
-    )): (<TableRow><TableCell colSpan={2}>Actualmente no tienes invitados</TableCell></TableRow>)}
-
+    ))}
   </TableBody>
 </Table>
 
