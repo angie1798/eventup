@@ -16,7 +16,10 @@ import {X, Check} from "lucide-react";
 export interface PersonaExcel {
   id: number;
   nombre: string;
-  apellido: string;
+  tipoInvitado: string;
+  familia: string;
+  contacto: string;
+  estado: string;
 }
 export default function Home() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -72,7 +75,6 @@ export default function Home() {
       });
 
       setData(jsonData);
-      personas = data
       console.log("Datos Excel:", jsonData);
     } catch (error) {
       console.error("Error leyendo el Excel", error);
@@ -109,12 +111,12 @@ export default function Home() {
         <TableCell>{persona.tipoInvitado}</TableCell>
         <TableCell>{persona.familia}</TableCell>
         <TableCell>{persona.contacto}</TableCell>
-        <TableCell>{persona.estado}</TableCell>
+        <TableCell>{persona.estado ? persona.estado : "Pendiente"}</TableCell>
         <TableCell>
-          <Button size="sm" className="mr-2">
+          <Button size="sm" variant={"ghost"} className="mr-2 border border-green-600 text-green-600 hover:bg-green-50 hover:text-green-700">
             <Check className="mr-2 h-4 w-4" />Confirmar
           </Button>
-          <Button size="sm">
+          <Button size="sm" variant={"ghost"} className="border border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700">
             <X className="mr-2 h-4 w-4" />No asistirá
           </Button>
         </TableCell>
