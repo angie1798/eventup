@@ -143,6 +143,16 @@ export default function Home() {
     }
   };
 
+  const actualizarEstado = (id: number, nuevoEstado: string) => {
+    setData((preData) =>
+      preData.map((persona) =>
+        persona.id === id
+          ? { ...persona, estado: nuevoEstado }
+          : persona
+      )
+    );
+  };
+
 
   return (
     <div className="container  mx-auto mt-20">
@@ -173,10 +183,10 @@ export default function Home() {
                 <TableCell>{persona.contacto}</TableCell>
                 <TableCell>{persona.estado ? persona.estado : "Pendiente"}</TableCell>
                 <TableCell>
-                  <Button size="sm" variant={"ghost"} className="mr-2 border border-green-600 text-green-600 hover:bg-green-50 hover:text-green-700">
+                  <Button size="sm" variant={"ghost"} onClick={() => actualizarEstado(persona.id, "Confirmado")} className="mr-2 border border-green-600 text-green-600 hover:bg-green-50 hover:text-green-700">
                     <Check className="mr-2 h-4 w-4" />Confirmar
                   </Button>
-                  <Button size="sm" variant={"ghost"} className="border border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700">
+                  <Button size="sm" variant={"ghost"} onClick={() => actualizarEstado(persona.id, "No asistirá")} className="border border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700">
                     <X className="mr-2 h-4 w-4" />No asistirá
                   </Button>
                 </TableCell>
