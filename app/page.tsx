@@ -17,7 +17,7 @@ import {
 import { useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import { X, Check, Pause, Trash } from "lucide-react";
-
+import { Checkbox } from "@/components/ui/checkbox";
 
 export interface PersonaExcel {
   id: number;
@@ -26,6 +26,7 @@ export interface PersonaExcel {
   familia: string;
   contacto: string;
   estado: string;
+  seleccionado: boolean;
 }
 export default function Home() {
   let invitados = [
@@ -36,6 +37,7 @@ export default function Home() {
       familia: "Pérez",
       contacto: "8888-1111",
       estado: "Confirmado",
+      seleccionado: false,
     },
     {
       id: 2,
@@ -44,6 +46,7 @@ export default function Home() {
       familia: "Gómez",
       contacto: "8888-2222",
       estado: "Pendiente",
+      seleccionado: false,
     },
     {
       id: 3,
@@ -52,6 +55,7 @@ export default function Home() {
       familia: "Rodríguez",
       contacto: "8888-3333",
       estado: "No asistirá",
+      seleccionado: false,
     },
     {
       id: 4,
@@ -60,6 +64,7 @@ export default function Home() {
       familia: "Fernández",
       contacto: "8888-4444",
       estado: "Confirmado",
+      seleccionado: false,
     },
     {
       id: 5,
@@ -68,6 +73,7 @@ export default function Home() {
       familia: "Morales",
       contacto: "8888-5555",
       estado: "Pendiente",
+      seleccionado: false,
     },
     {
       id: 6,
@@ -76,6 +82,7 @@ export default function Home() {
       familia: "Vargas",
       contacto: "8888-6666",
       estado: "Confirmado",
+      seleccionado: false,
     },
     {
       id: 7,
@@ -84,6 +91,7 @@ export default function Home() {
       familia: "Castro",
       contacto: "8888-7777",
       estado: "Pendiente",
+      seleccionado: false,
     },
     {
       id: 8,
@@ -92,6 +100,7 @@ export default function Home() {
       familia: "Rojas",
       contacto: "8888-8888",
       estado: "Confirmado",
+      seleccionado: false,
     },
     {
       id: 9,
@@ -100,6 +109,7 @@ export default function Home() {
       familia: "Navarro",
       contacto: "8888-9999",
       estado: "Pendiente",
+      seleccionado: false,
     },
     {
       id: 10,
@@ -108,6 +118,7 @@ export default function Home() {
       familia: "Herrera",
       contacto: "8888-0000",
       estado: "Confirmado",
+      seleccionado: false,
     },
   ];
 
@@ -115,6 +126,7 @@ export default function Home() {
   const [data, setData] = useState<PersonaExcel[]>(invitados);
   const [fileName, setFileName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [checked, setChecked] = useState<boolean>(false);
 
   const handleButtonClick = () => {
     fileInputRef.current?.click();
@@ -157,13 +169,110 @@ export default function Home() {
     );
   };
 
-    const eliminarInvitado = (id: number) => {
-      let filtrado = data.filter((persona) => persona.id !== id);
-      setData(filtrado);
-    };
+  const actualizarEstadosSeleccionados = (nuevoEstado: string) => {
+    setData((preData) =>
+      preData.map((persona) =>
+        persona.seleccionado ? { ...persona, estado: nuevoEstado } : persona,
+      ),
+    );
+  };
+
+  const eliminarInvitado = (id: number) => {
+    let filtrado = data.filter((persona) => persona.id !== id);
+    setData(filtrado);
+  };
+
+  const eliminarInvitadosSeleccionados = () => {
+    setChecked(!checked);
+    let filtrado = data.filter((persona) => !persona.seleccionado);
+    setData(filtrado);
+  };
+
+  const seleccionarInvitado = (id: number) => {
+    setData((preData) =>
+      preData.map((persona) =>
+        persona.id === id
+          ? { ...persona, seleccionado: !persona.seleccionado }
+          : persona,
+      ),
+    );
+  };
+
+  const seleccionarTodos = () => {
+    setChecked(!checked);
+    setData((preData) =>
+      preData.map((persona) => ({ ...persona, seleccionado: !checked })),
+    );
+  };
 
   return (
     <div className="container  mx-auto mt-20">
+      {data.some((persona) => persona.seleccionado)? (
+        <div className="w-full items-start space-y-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="sm"
+              variant={"ghost"}
+              onClick={() => actualizarEstadosSeleccionados("Confirmado")}
+              className="mr-2 border border-green-600 text-green-600 hover:bg-green-50 hover:text-green-700"
+            >
+              <Check className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Confirmar asistencia</p>
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="sm"
+              variant={"ghost"}
+              onClick={() => actualizarEstadosSeleccionados("No asistirá")}
+              className="border border-orange-600 text-orange-600 hover:bg-orange-50 hover:text-orange-700"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Rechazar asistencia</p>
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="sm"
+              variant={"ghost"}
+              onClick={() => actualizarEstadosSeleccionados("Pendiente")}
+              className="mr-2 ml-2 border border-yellow-500 text-yellow-500 hover:bg-yellow-50 hover:text-yellow-600"
+            >
+              <Pause className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Pasar a pendiente</p>
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="sm"
+              variant={"ghost"}
+              onClick={() => eliminarInvitadosSeleccionados()}
+              className="border border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
+            >
+              <Trash className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Eliminar</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+      ): <div className="w-full items-start space-y-2 h-[40px]"></div>
+      }
+      
       <Table>
         {data.length > 0 ? (
           <TableCaption>Esta es tu lista de invitados.</TableCaption>
@@ -172,6 +281,9 @@ export default function Home() {
         )}
         <TableHeader>
           <TableRow>
+            <TableHead>
+              <Checkbox checked={checked} onCheckedChange={seleccionarTodos} />
+            </TableHead>
             <TableHead className="w-[100px]">ID</TableHead>
             <TableHead>Nombre</TableHead>
             <TableHead>Tipo de invitado</TableHead>
@@ -185,6 +297,12 @@ export default function Home() {
           {data.length > 0 &&
             data.map((persona) => (
               <TableRow key={persona.id}>
+                <TableCell>
+                  <Checkbox
+                    checked={persona.seleccionado}
+                    onCheckedChange={() => seleccionarInvitado(persona.id)}
+                  />
+                </TableCell>
                 <TableCell className="font-medium">
                   INV{persona.id.toString().padStart(3, "0")}
                 </TableCell>
@@ -230,7 +348,7 @@ export default function Home() {
                       <p>Rechazar asistencia</p>
                     </TooltipContent>
                   </Tooltip>
-                   <Tooltip>
+                  <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         size="sm"
@@ -252,9 +370,7 @@ export default function Home() {
                       <Button
                         size="sm"
                         variant={"ghost"}
-                        onClick={() =>
-                          eliminarInvitado(persona.id)
-                        }
+                        onClick={() => eliminarInvitado(persona.id)}
                         className="border border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
                       >
                         <Trash className="h-4 w-4" />
