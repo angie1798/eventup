@@ -129,25 +129,25 @@ export default function Home() {
   const [checked, setChecked] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
-const loadUsuarios = async () => {
-  try {
-    const response = await fetch('/api/invitados');
+  const loadUsuarios = async () => {
+    try {
+      const response = await fetch('/api/invitados');
 
-    if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      console.log('Respuesta del API:', data);
+      setData(data);
+
+    } catch (error) {
+      console.error('Error:', error);
     }
+  };
 
-    const data = await response.json();
-
-    console.log('Respuesta del API:', data);
-    setData(data);
-
-  } catch (error) {
-    console.error('Error:', error);
-  }
-};
-
-const actualizarInvitado = async (id: number, nuevoEstado: string) => {
+  const actualizarInvitado = async (id: number, nuevoEstado: string) => {
     const response = await fetch(`/api/invitados/${id}`, {
       method: 'PATCH',
       headers: {
@@ -157,7 +157,7 @@ const actualizarInvitado = async (id: number, nuevoEstado: string) => {
         estado: nuevoEstado
       })
     })
-    if (response.ok) {      
+    if (response.ok) {
       const actualizado = await response.json();
       setData((preData) =>
         preData.map((persona) =>
@@ -171,7 +171,7 @@ const actualizarInvitado = async (id: number, nuevoEstado: string) => {
     const response = await fetch(`/api/invitados/${id}`, {
       method: 'DELETE'
     });
-    if (response.ok) {      
+    if (response.ok) {
       let filtrado = data.filter((persona) => persona.id !== id);
       setData(filtrado);
     }
@@ -181,9 +181,9 @@ const actualizarInvitado = async (id: number, nuevoEstado: string) => {
   //   setData(filtrado);
   // };
 
-useEffect(() => {
-  loadUsuarios();
-}, []);
+  useEffect(() => {
+    loadUsuarios();
+  }, []);
 
   const handleButtonClick = () => {
     fileInputRef.current?.click();
@@ -209,6 +209,7 @@ useEffect(() => {
         defval: null,
       });
 
+      await crearInvitados(jsonData);
       setData(jsonData);
       console.log("Datos Excel:", jsonData);
     } catch (error) {
@@ -218,6 +219,21 @@ useEffect(() => {
     }
   };
 
+  const crearInvitados = async (invitados: PersonaExcel[]) => {
+    try {
+      const response = await fetch('/api/invitados/bulk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ invitados })
+      }); 
+    } 
+      catch (error) {
+      console.error('Error creando invitados:', error);
+    } 
+  }
+
   const actualizarEstado = (id: number, nuevoEstado: string) => {
     setData((preData) =>
       preData.map((persona) =>
@@ -226,19 +242,57 @@ useEffect(() => {
     );
   };
 
-  const actualizarEstadosSeleccionados = (nuevoEstado: string) => {
-    setData((preData) =>
-      preData.map((persona) =>
-        persona.seleccionado ? { ...persona, estado: nuevoEstado } : persona,
-      ),
-    );
+  const actualizarEstadosSeleccionados = async (nuevoEstado: string) => {
+    try {
+      const idsSeleccionados = data
+        .filter(persona => persona.seleccionado)
+        .map(persona => persona.id)
+
+      await fetch('/api/invitados/bulk', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ids: idsSeleccionados,
+          estado: nuevoEstado
+        })
+      })
+      setData(prev =>
+        prev.map(p =>
+          idsSeleccionados.includes(p.id)
+            ? { ...p, estado: nuevoEstado }
+            : p
+        )
+      )
+    }
+    catch (error) {
+      console.error('Error actualizando estados:', error);
+    }
   };
 
 
-  const eliminarInvitadosSeleccionados = () => {
-    setChecked(!checked);
-    let filtrado = data.filter((persona) => !persona.seleccionado);
-    setData(filtrado);
+  const eliminarInvitadosSeleccionados = async () => {
+    try {
+      const idsSeleccionados = data
+        .filter(persona => persona.seleccionado)
+        .map(persona => persona.id)
+      await fetch('/api/invitados/bulk', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ids: idsSeleccionados
+        })
+      })
+      setChecked(!checked);
+      let filtrado = data.filter((persona) => !persona.seleccionado);
+      setData(filtrado);
+    }
+    catch (error) {
+      console.error('Error eliminando invitados:', error);
+    }
   };
 
   const seleccionarInvitado = (id: number) => {
@@ -260,72 +314,72 @@ useEffect(() => {
 
   return (
     <div className="container  mx-auto mt-20">
-      {data.some((persona) => persona.seleccionado)? (
+      {data.some((persona) => persona.seleccionado) ? (
         <div className="w-full items-start space-y-2">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="sm"
-              variant={"ghost"}
-              onClick={() => actualizarEstadosSeleccionados("Confirmado")}
-              className="mr-2 border border-green-600 text-green-600 hover:bg-green-50 hover:text-green-700"
-            >
-              <Check className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Confirmar asistencia</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="sm"
-              variant={"ghost"}
-              onClick={() => actualizarEstadosSeleccionados("No asistirá")}
-              className="border border-orange-600 text-orange-600 hover:bg-orange-50 hover:text-orange-700"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Rechazar asistencia</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="sm"
-              variant={"ghost"}
-              onClick={() => actualizarEstadosSeleccionados("Pendiente")}
-              className="mr-2 ml-2 border border-yellow-500 text-yellow-500 hover:bg-yellow-50 hover:text-yellow-600"
-            >
-              <Pause className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Pasar a pendiente</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="sm"
-              variant={"ghost"}
-              onClick={() => eliminarInvitadosSeleccionados()}
-              className="border border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
-            >
-              <Trash className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Eliminar</p>
-          </TooltipContent>
-        </Tooltip>
-      </div>
-      ): <div className="w-full items-start space-y-2 h-[40px]"></div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant={"ghost"}
+                onClick={() => actualizarEstadosSeleccionados("Confirmado")}
+                className="mr-2 border border-green-600 text-green-600 hover:bg-green-50 hover:text-green-700"
+              >
+                <Check className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Confirmar asistencia</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant={"ghost"}
+                onClick={() => actualizarEstadosSeleccionados("No asistirá")}
+                className="border border-orange-600 text-orange-600 hover:bg-orange-50 hover:text-orange-700"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Rechazar asistencia</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant={"ghost"}
+                onClick={() => actualizarEstadosSeleccionados("Pendiente")}
+                className="mr-2 ml-2 border border-yellow-500 text-yellow-500 hover:bg-yellow-50 hover:text-yellow-600"
+              >
+                <Pause className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Pasar a pendiente</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant={"ghost"}
+                onClick={() => eliminarInvitadosSeleccionados()}
+                className="border border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Eliminar</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      ) : <div className="w-full items-start space-y-2 h-[40px]"></div>
       }
-      
+
       <Table>
         {data.length > 0 ? (
           <TableCaption>Esta es tu lista de invitados.</TableCaption>
