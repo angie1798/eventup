@@ -1,0 +1,18 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model invitados {
+  id            Int      @id @default(autoincrement())
+  nombre        String   @db.VarChar(100)
+  tipoInvitado  String   @map("tipo_invitado")
+  familia       String?  @db.VarChar(100)
+  contacto      String?  @db.VarChar(20)
+  estado        String?  @db.VarChar(50)
+  seleccionado  Boolean? @default(false)
+}

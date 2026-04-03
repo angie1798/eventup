@@ -1,8 +1,8 @@
 const { Pool } = require('pg');
-require ('dotenv').config();
+// require ('dotenv').config();
 
 const connectionPool = new Pool({
-  connectionString: process.env.POSTGRES_URL,
+  // connectionString: process.env.POSTGRES_URL,
   user: process.env.POSTGRES_USER,
   host: process.env.POSTGRES_HOST,
   database: process.env.POSTGRES_DATABASE,
@@ -10,4 +10,4 @@ const connectionPool = new Pool({
   port: 5432,
 });
 
-module.exports = connectionPool;
+export default connectionPool;

@@ -14,7 +14,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import { X, Check, Pause, Trash } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -127,6 +127,63 @@ export default function Home() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [checked, setChecked] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+
+const loadUsuarios = async () => {
+  try {
+    const response = await fetch('/api/invitados');
+
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    console.log('Respuesta del API:', data);
+    setData(data);
+
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
+
+const actualizarInvitado = async (id: number, nuevoEstado: string) => {
+    const response = await fetch(`/api/invitados/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        estado: nuevoEstado
+      })
+    })
+    if (response.ok) {      
+      const actualizado = await response.json();
+      setData((preData) =>
+        preData.map((persona) =>
+          persona.id === id ? { ...persona, estado: actualizado.estado } : persona,
+        ),
+      );
+    }
+  }
+
+  const eliminarInvitado = async (id: number) => {
+    const response = await fetch(`/api/invitados/${id}`, {
+      method: 'DELETE'
+    });
+    if (response.ok) {      
+      let filtrado = data.filter((persona) => persona.id !== id);
+      setData(filtrado);
+    }
+  }
+  //   const eliminarInvitado = (id: number) => {
+  //   let filtrado = data.filter((persona) => persona.id !== id);
+  //   setData(filtrado);
+  // };
+
+useEffect(() => {
+  loadUsuarios();
+}, []);
 
   const handleButtonClick = () => {
     fileInputRef.current?.click();
@@ -177,10 +234,6 @@ export default function Home() {
     );
   };
 
-  const eliminarInvitado = (id: number) => {
-    let filtrado = data.filter((persona) => persona.id !== id);
-    setData(filtrado);
-  };
 
   const eliminarInvitadosSeleccionados = () => {
     setChecked(!checked);
@@ -320,7 +373,7 @@ export default function Home() {
                         size="sm"
                         variant={"ghost"}
                         onClick={() =>
-                          actualizarEstado(persona.id, "Confirmado")
+                          actualizarInvitado(persona.id, "Confirmado")
                         }
                         className="mr-2 border border-green-600 text-green-600 hover:bg-green-50 hover:text-green-700"
                       >
@@ -337,7 +390,7 @@ export default function Home() {
                         size="sm"
                         variant={"ghost"}
                         onClick={() =>
-                          actualizarEstado(persona.id, "No asistirá")
+                          actualizarInvitado(persona.id, "No asistirá")
                         }
                         className="border border-orange-600 text-orange-600 hover:bg-orange-50 hover:text-orange-700"
                       >
@@ -354,7 +407,7 @@ export default function Home() {
                         size="sm"
                         variant={"ghost"}
                         onClick={() =>
-                          actualizarEstado(persona.id, "Pendiente")
+                          actualizarInvitado(persona.id, "Pendiente")
                         }
                         className="mr-2 ml-2 border border-yellow-500 text-yellow-500 hover:bg-yellow-50 hover:text-yellow-600"
                       >
